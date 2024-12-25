@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="topnav.css" th:href="@{/css/topnav.css}" />
+    <link rel="stylesheet" href="Sidenavbar.css" th:href="@{/css/Sidenavbar.css}" />
+    <link rel="stylesheet" href="Uploadfile.css" th:href="@{/css/Uploadfile.css}" />
+
+    <script>
+        let loadedData = [];
+
+        function displayFileName() {
+            const fileInput = document.getElementById("fileInput");
+            const fileName = fileInput.files.length > 0 ? fileInput.files[0].name : "";
+            $("#fileNameDisplay").text(fileName);
+        }
+
+        function clearFile() {
+            $("#fileInput").val("");
+            $("#fileNameDisplay").text("No file selected");
+            $("#dataTable tbody").empty();
+            $("#dataTable").hide();
+        }
+
+        function loadFile() {
+            const fileInput = document.getElementById("fileInput").files[0];
+            if (!fileInput) {
+                alert("Please select a file first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput);
+
+            $.ajax({
+                url: '/loadFile',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    loadedData = data;
+                    displayData(data);
+                    $("#dataTable").show(); 
+                },
+                error: function () {
+                    alert("Failed to load file.");
+                }
+            });
+        }
+
+        function displayData(data) {
+            const tableBody = $("#dataTable tbody");
+            tableBody.empty();
+
+            data.forEach(product => {
+                const row = `
+                    <tr>
+                        <td>${product.productId}</td>
+                        <td>${product.productName}</td>
+                        <td>${product.productType}</td>
+                        <td>${product.productPrice}</td>
+                        <td>${product.productDate}</td>
+                    </tr>`;
+                tableBody.append(row);
+            });
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById("fileInput").files[0];
+            if (!fileInput) {
+                alert("Please select a file first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput);
+
+            $.ajax({
+                url: '/upload',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (message) {
+                    document.getElementById("demo").innerHTML="file uploaded successfully";
+                    clearFile();
+                },
+                error: function () {
+                    alert("Failed to upload file.");
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <div th:insert="TopNav.html::topnav"></div>
+    <div class="container-fluid">
+        <div class="row">
+           
+            <div class="col-md-3">
+                <div th:insert="Sidenavbar.html::Sidenav"></div>
+            </div>
+            <div class="col-md-9">
+                <div class="container mt-5">
+                	<p id="demo" ></p>
+                    <h4 class="mb-4">Home >> Upload Product</h4>
+
+                    <div class="file-upload-section">
+                        <div class="file-upload-box">
+                            <label for="fileInput" class="form-label">Select File</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="fileInput" onchange="displayFileName()">
+                                <span class="input-group-text" id="fileNameDisplay">No file selected</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group d-flex gap-3">
+                        <button class="btn btn-info " onclick="loadFile()">Load</button>
+                        <button class="btn btn-primary ml-3" onclick="uploadFile()">Upload</button>
+                        <button class="btn btn-secondary ml-3" onclick="clearFile()">Clear</button>
+                    </div>
+
+                    <table class="table table-bordered" id="dataTable">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Product ID</th>
+                                <th>Product Name</th>
+                                <th>Product Type</th>
+                                <th>Product Price</th>
+                                <th>Product Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+          
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>
